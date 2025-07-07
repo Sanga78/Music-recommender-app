@@ -1,1 +1,4 @@
 /venv
+*.pyc
+/lyricbackend/api/migrations
+*.sqlite3
