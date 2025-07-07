@@ -1,0 +1,42 @@
+.player-card {
+  display: flex;
+  gap: 2rem;
+  background: #16213e;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 800px;
+  margin: 2rem auto;
+  color: white;
+}
+
+.album-art {
+  width: 150px;
+  height: 150px;
+  background: #4cc9f0;
+  border-radius: 10px;
+}
+
+.player-controls {
+  flex: 1;
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 1rem 0;
+  border-radius: 3px;
+}
+
+.buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.buttons button {
+  background: #4cc9f0;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
