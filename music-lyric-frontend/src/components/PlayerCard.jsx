@@ -1,4 +1,4 @@
-import './styles/PlayerCard.css';
+import '../styles/PlayerCard.css';
 
 const PlayerCard = () => {
   return (
