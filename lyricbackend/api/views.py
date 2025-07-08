@@ -8,6 +8,13 @@ from rest_framework.authtoken.models import Token
 from .models import CustomUser, SearchHistory
 from .serializers import UserSerializer, SearchHistorySerializer
 import json
+from django.http import JsonResponse
+import requests  
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def verify_token(request):
+    return Response({'status': 'valid'}, status=200)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -39,6 +46,34 @@ def login(request):
             'email': user.email
         }, status=HTTP_200_OK)
     return Response({'error': 'Invalid Credentials'}, status=HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_lyrics(request):
+    query = request.GET.get('q', '')
+    SearchHistory.objects.create(user=request.user, query=query)
+    #EXTERNAL API REQUIRED
+    headers = {
+        'Authorization': 'Bearer YOUR_GENIUS_API_KEY'
+    }
+    try:
+        response = requests.get(
+            f'https://api.genius.com/search?q={query}',
+            headers=headers
+        )
+        results = response.json()['response']['hits']
+        
+        formatted_results = [{
+            'title': hit['result']['title'],
+            'artist': hit['result']['primary_artist']['name'],
+            'url': hit['result']['url'],
+            'image': hit['result']['song_art_image_url']
+        } for hit in results]
+        
+        return JsonResponse({'results': formatted_results})
+    
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
