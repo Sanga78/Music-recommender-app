@@ -1,4 +1,3 @@
-// src/services/auth.js
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8000/';
@@ -12,7 +11,7 @@ const api = axios.create({
   }
 });
 
-// Add request interceptor to include token
+// Request interceptor for auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -26,41 +25,50 @@ api.interceptors.request.use(
   }
 );
 
+// Response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      // Handle specific status codes
+      if (error.response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+      return Promise.reject(error.response.data);
+    }
+    return Promise.reject(error.message);
+  }
+);
+
 export const register = async (username, email, password) => {
-  const response = await fetch('http://localhost:8000/register/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
+  try {
+    const response = await api.post('register/', {
       username,
       email,
       password
-    })
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
+    });
+    return response.data;
+  } catch (error) {
     throw new Error(
-      errorData.username?.[0] || 
-      errorData.email?.[0] || 
-      errorData.password?.[0] || 
-      'Registration failed'
+      error.username?.[0] ||
+      error.email?.[0] ||
+      error.password?.[0] ||
+      'Registration failed. Please try again.'
     );
   }
-  return await response.json();
 };
 
 export const login = async (username, password) => {
   try {
-    const response = await api.post('/login/', {
+    const response = await api.post('login/', {
       username,
       password
     });
     return response.data;
   } catch (error) {
     throw new Error(
-      error.response?.data?.non_field_errors?.[0] ||
+      error.non_field_errors?.[0] ||
       'Login failed. Please check your credentials.'
     );
   }
@@ -68,23 +76,51 @@ export const login = async (username, password) => {
 
 export const logout = () => {
   localStorage.removeItem('token');
+  return api.post('logout/'); // Optional: Call backend logout if needed
 };
 
-// Verify token validity
 export const verifyToken = async () => {
   try {
     const token = localStorage.getItem('token');
     if (!token) return false;
     
-    const response = await api.get('/verify-token/');
-    return response.status === 200;
+    await api.get('verify-token/');
+    return true;
   } catch (error) {
     return false;
   }
 };
 
-export const getSearchHistory = (token) => {
-  return axios.get(`${API_URL}/search-history/`, {
-    headers: { 'Authorization': `Token ${token}` }
-  });
+export const getSearchHistory = async () => {
+  try {
+    const response = await api.get('search-history/');
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.detail || 'Failed to fetch search history'
+    );
+  }
+};
+
+// Additional API calls can be added here following the same pattern
+export const addFavorite = async (songId) => {
+  try {
+    const response = await api.post('favorites/', { song_id: songId });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.detail || 'Failed to add favorite'
+    );
+  }
+};
+
+export const getFavorites = async () => {
+  try {
+    const response = await api.get('favorites/');
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.detail || 'Failed to fetch favorites'
+    );
+  }
 };

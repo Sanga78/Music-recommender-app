@@ -27,14 +27,14 @@
   text-decoration: none;
 }
 
-.search-container {
+.desktop-search {
   display: flex;
   flex: 0.5;
   max-width: 500px;
   margin: 0 1rem;
 }
 
-.search-container input {
+.desktop-search input {
   width: 100%;
   padding: 0.5rem 1rem;
   border: none;
@@ -43,7 +43,7 @@
   color: white;
 }
 
-.search-container button {
+.desktop-search button {
   padding: 0 1rem;
   background: #4cc9f0;
   border: none;
@@ -93,7 +93,7 @@
 }
 
 @media (max-width: 768px) {
-  .search-container {
+  .desktop-search {
     display: none;
   }
   

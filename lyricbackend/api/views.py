@@ -1,12 +1,12 @@
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate,get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from rest_framework.authtoken.models import Token
-from .models import CustomUser, SearchHistory
-from .serializers import UserSerializer, SearchHistorySerializer
+from .models import CustomUser, SearchHistory,Song, UserSongInteraction
+from .serializers import UserSerializer, SearchHistorySerializer,UserProfileSerializer, SongSerializer
 import json
 from django.http import JsonResponse
 import requests  
@@ -47,6 +47,24 @@ def login(request):
         }, status=HTTP_200_OK)
     return Response({'error': 'Invalid Credentials'}, status=HTTP_400_BAD_REQUEST)
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    serializer = UserProfileSerializer(request.user)
+    return Response(serializer.data)
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_profile(request):
+    user = request.user
+    serializer = UserSerializer(user, data=request.data, partial=True)
+    
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=400)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def search_lyrics(request):
@@ -75,6 +93,15 @@ def search_lyrics(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+@api_view(['GET'])
+def song_detail(request, song_id):
+    try:
+        song = Song.objects.get(pk=song_id)
+        serializer = SongSerializer(song)
+        return Response(serializer.data)
+    except Song.DoesNotExist:
+        return Response({"error": "Song not found"}, status=404)
+
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def search_history(request):
@@ -91,3 +118,22 @@ def search_history(request):
             serializer.save()
             return Response(serializer.data, status=HTTP_201_CREATED)
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+    
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def log_interaction(request):
+    song_id = request.data.get('song_id')
+    interaction_type = request.data.get('interaction_type')
+    
+    try:
+        song = Song.objects.get(pk=song_id)
+        interaction = UserSongInteraction.objects.create(
+            user=request.user,
+            song=song,
+            interaction_type=interaction_type
+        )
+        return Response({"status": "success"})
+    except Song.DoesNotExist:
+        return Response({"error": "Song not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)

@@ -14,6 +14,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
+    toast.success('Logged out successfully!');
     navigate('/');
     setIsMobileMenuOpen(false);
   };
@@ -35,21 +36,44 @@ const Navbar = () => {
       className="navbar"
     >
       <div className="logo-container">
-        <Link to="/" className="logo">
+        <Link to="/" className="logo" onClick={() => setIsMobileMenuOpen(false)}>
           <FaMusic /> LyricFlow
         </Link>
       </div>
+
+      {/* Desktop Search */}
+      <form onSubmit={handleSearch} className="desktop-search">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search songs..."
+        />
+        <button type="submit">
+          <FaSearch />
+        </button>
+      </form>
 
       <ul className={`nav-links ${isMobileMenuOpen ? 'active' : ''}`}>
         <li>
           <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
         </li>
-        {/* <li>
-              <Link to="/Search" onClick={() => setIsMobileMenuOpen(false)}>
-                <FaSearch /> Search
-              </Link>
-        </li> */}
         
+        {/* Mobile Search */}
+        <li className="mobile-search">
+          <form onSubmit={handleSearch}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search songs..."
+            />
+            <button type="submit">
+              <FaSearch />
+            </button>
+          </form>
+        </li>
+
         {user ? (
           <>
             <li>
@@ -65,7 +89,7 @@ const Navbar = () => {
           </>
         ) : (
           <li>
-            <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
+            <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
           </li>
         )}
       </ul>
