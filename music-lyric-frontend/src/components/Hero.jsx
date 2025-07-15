@@ -1,15 +1,18 @@
 import '../styles/Hero.css';
-
+import Search from '../components/Search';
+import { Link, useNavigate } from 'react-router-dom';
 const Hero = () => {
   return (
     <section className="hero">
       <div className="hero-content">
-        <h1>Sync Lyrics with Your Music</h1>
-        <p>Real-time lyrics for your favorite songs. Play, sing, and enjoy!</p>
-        <button className="cta-button">Explore Lyrics</button>
+        <h1>Discover Song Lyrics</h1>
+        <p>Find, read, and rate lyrics for your favorite songs</p>
+        <Search/>
       </div>
     </section>
+    
   );
 };
 
 export default Hero;
+

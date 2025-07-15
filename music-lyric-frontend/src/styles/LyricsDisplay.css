@@ -1,0 +1,27 @@
+.lyrics-container {
+  background: #1a1a2e;
+  border-radius: 8px;
+  padding: 1rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.lyrics-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lyrics-line {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: all 0.3s;
+  opacity: 0.7;
+}
+
+.lyrics-line.active {
+  background: rgba(76, 201, 240, 0.2);
+  opacity: 1;
+  transform: scale(1.02);
+  border-left: 3px solid #4cc9f0;
+}

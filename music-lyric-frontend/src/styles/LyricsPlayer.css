@@ -1,0 +1,65 @@
+.lyrics-player {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+  color: white;
+}
+
+.song-info {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.song-info h1 {
+  color: #4cc9f0;
+  margin-bottom: 0.5rem;
+}
+
+.song-info h2 {
+  margin-top: 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.audio-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  background: #1a1a2e;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.play-button {
+  background: #4cc9f0;
+  color: #1a1a2e;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seek-bar {
+  flex: 1;
+  height: 6px;
+  cursor: pointer;
+}
+
+.time-display {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.loading, .error {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.error {
+  color: #ff6b6b;
+}

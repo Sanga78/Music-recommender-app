@@ -1,15 +1,16 @@
-from django.contrib.auth import authenticate,get_user_model
+from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated,IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from rest_framework.authtoken.models import Token
-from .models import CustomUser, SearchHistory,Song, UserSongInteraction
-from .serializers import UserSerializer, SearchHistorySerializer,UserProfileSerializer, SongSerializer
+from .models import CustomUser, LyricsVote, SearchHistory,Song, UserSongInteraction
+from .serializers import CommentSerializer, LyricsVoteSerializer, UserSerializer, SearchHistorySerializer,UserProfileSerializer, SongSerializer
 import json
 from django.http import JsonResponse
 import requests  
+from django.db.models import Count,Q
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -70,7 +71,6 @@ def update_profile(request):
 def search_lyrics(request):
     query = request.GET.get('q', '')
     SearchHistory.objects.create(user=request.user, query=query)
-    #EXTERNAL API REQUIRED
     headers = {
         'Authorization': 'Bearer YOUR_GENIUS_API_KEY'
     }
@@ -94,10 +94,37 @@ def search_lyrics(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 @api_view(['GET'])
-def song_detail(request, song_id):
+def song_list(request):
+    songs = Song.objects.annotate(
+        upvotes_count=Count('lyricsvote', filter=Q(lyricsvote__vote=1)),
+        downvotes_count=Count('lyricsvote', filter=Q(lyricsvote__vote=-1))
+    ).order_by('-upvotes_count')[:50] 
+    
+    serializer = SongSerializer(songs, many=True, context={'request': request})
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def song_detail(request, pk):
     try:
-        song = Song.objects.get(pk=song_id)
-        serializer = SongSerializer(song)
+        song = Song.objects.get(pk=pk)
+        serializer = SongSerializer(song, context={'request': request})
+        return Response(serializer.data)
+    except Song.DoesNotExist:
+        return Response({"error": "Song not found"}, status=404)
+
+@api_view(['GET'])
+def player_data(request, pk):
+    try:
+        song = Song.objects.get(pk=pk)
+        
+        if request.user.is_authenticated:
+            UserSongInteraction.objects.create(
+                user=request.user,
+                song=song,
+                interaction_type='VIEW'
+            )
+        
+        serializer = SongSerializer(song, context={'request': request})
         return Response(serializer.data)
     except Song.DoesNotExist:
         return Response({"error": "Song not found"}, status=404)
@@ -108,7 +135,7 @@ def search_history(request):
     if request.method == 'GET':
         history = SearchHistory.objects.filter(user=request.user)
         serializer = SearchHistorySerializer(history, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data) 
     
     elif request.method == 'POST':
         data = request.data.copy()
@@ -137,3 +164,51 @@ def log_interaction(request):
         return Response({"error": "Song not found"}, status=404)
     except Exception as e:
         return Response({"error": str(e)}, status=400)
+    
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def vote_lyrics(request, song_id):
+    try:
+        song = Song.objects.get(pk=song_id)
+        vote_value = int(request.data.get('vote', 0))
+
+        if vote_value not in [-1, 0, 1]:
+            return Response({"error": "Invalid vote value"}, status=400)
+
+        vote, created = LyricsVote.objects.get_or_create(
+            user=request.user,
+            song=song,
+            defaults={'vote': vote_value}
+        )
+        
+        if not created and vote.vote != vote_value:
+            vote.vote = vote_value
+            vote.save()
+        
+        serializer = LyricsVoteSerializer(vote)
+        return Response(serializer.data)
+    
+    except Song.DoesNotExist:
+        return Response({"error": "Song not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+    
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def song_comments(request, song_id):
+    try:
+        song = Song.objects.get(pk=song_id)
+    except Song.DoesNotExist:
+        return Response({"error": "Song not found"}, status=404)
+
+    if request.method == 'GET':
+        comments = song.comments.all()
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user, song=song)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)

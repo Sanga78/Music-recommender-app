@@ -76,7 +76,7 @@ export const login = async (username, password) => {
 
 export const logout = () => {
   localStorage.removeItem('token');
-  return api.post('logout/'); // Optional: Call backend logout if needed
+  return api.post('logout/');
 };
 
 export const verifyToken = async () => {

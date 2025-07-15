@@ -36,3 +36,20 @@
   background: #3aa8d8;
   transform: scale(1.05);
 }
+.search-section {
+  padding: 3rem 0;
+  background: #16213e;
+}
+
+.search-section .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.search-section h2 {
+  text-align: center;
+  color: #4cc9f0;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+}
