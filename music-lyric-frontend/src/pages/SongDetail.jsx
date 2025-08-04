@@ -191,7 +191,7 @@ const SongDetail = () => {
           {comments.map(comment => (
             <div key={comment.id} className="comment">
               <div className="comment-header">
-                <span className="comment-author">{comment.user.username}</span>
+                <span className="comment-author">{comment.user}</span>
                 <span className="comment-date">
                   {new Date(comment.created_at).toLocaleString()}
                 </span>
