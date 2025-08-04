@@ -5,8 +5,6 @@ Here's a comprehensive `README.md` for your LyricFlow application:
 
 A music application that combines song lyrics with audio playback, community voting, and discussion.
 
-![LyricFlow Screenshot](https://example.com/screenshot.jpg) *(Replace with actual screenshot URL)*
-
 ## Features ✨
 
 - 🎧 Stream songs with synchronized lyrics display
